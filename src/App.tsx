@@ -25,12 +25,34 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ChatError | null>(null);
   const [lastFailed, setLastFailed] = useState<Message[] | null>(null);
+  const [contactsOpen, setContactsOpen] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const contactButtonRef = useRef<HTMLButtonElement>(null);
+  const closeContactsRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, loading, error]);
+
+  useEffect(() => {
+    if (!contactsOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeContactsRef.current?.focus();
+
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setContactsOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+      contactButtonRef.current?.focus();
+    };
+  }, [contactsOpen]);
 
   async function request(nextMessages: Message[]) {
     setLoading(true);
@@ -105,9 +127,20 @@ export function App() {
           <span className="status-dot" />
           консультант онлайн
         </div>
-        <button className="new-dialog" type="button" onClick={startNewDialog} disabled={loading || !hasConversation}>
-          Новый диалог <span aria-hidden="true">↗</span>
-        </button>
+        <div className="header-actions">
+          <button
+            className="contact-button"
+            type="button"
+            ref={contactButtonRef}
+            onClick={() => setContactsOpen(true)}
+            aria-haspopup="dialog"
+          >
+            Связаться с консультантом
+          </button>
+          <button className="new-dialog" type="button" onClick={startNewDialog} disabled={loading || !hasConversation}>
+            <span className="new-dialog-label">Новый диалог</span> <span aria-hidden="true">↗</span>
+          </button>
+        </div>
       </header>
 
       <main id="top" className={hasConversation ? 'main conversation-active' : 'main'}>
@@ -212,6 +245,51 @@ export function App() {
         <span>LIGHT CONSULTANT © 2026</span>
         <span>Расчёты ориентировочные, не проектная документация</span>
       </footer>
+
+      {contactsOpen && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setContactsOpen(false);
+          }}
+        >
+          <section
+            className="contact-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-title"
+            aria-describedby="contact-note"
+          >
+            <div className="contact-modal-head">
+              <span>КОНТАКТЫ / 01</span>
+              <button
+                type="button"
+                ref={closeContactsRef}
+                onClick={() => setContactsOpen(false)}
+                aria-label="Закрыть окно контактов"
+              >
+                ×
+              </button>
+            </div>
+            <div className="contact-modal-body">
+              <span className="contact-star" aria-hidden="true">✳</span>
+              <p className="eyebrow">ОБСУДИМ ВАШ ПРОЕКТ</p>
+              <h2 id="contact-title">Связаться<br />с консультантом</h2>
+              <div className="contact-list">
+                <div>
+                  <span>ТЕЛЕФОН</span>
+                  <strong>+7 (495) 123-45-67</strong>
+                </div>
+                <div>
+                  <span>АДРЕС</span>
+                  <strong>Москва, Световой проспект, 18</strong>
+                </div>
+              </div>
+              <p id="contact-note" className="contact-note">Контакты демонстрационные. Онлайн-запись появится в следующей версии.</p>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
