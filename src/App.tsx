@@ -278,7 +278,7 @@ export function App() {
               <div className="contact-list">
                 <div>
                   <span>ТЕЛЕФОН</span>
-                  <strong>+7 (495) 123-45-67</strong>
+                  <strong>+7 (495) 123-45-67</strongx>
                 </div>
                 <div>
                   <span>АДРЕС</span>
