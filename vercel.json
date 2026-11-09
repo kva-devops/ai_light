@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "functions": {
+    "api/chat.ts": {
+      "includeFiles": "server/system-prompt.md",
+      "maxDuration": 60
+    }
+  }
+}
